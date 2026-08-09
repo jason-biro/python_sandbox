@@ -1,7 +1,6 @@
 import pytest
 import httpx
 from fastapi import FastAPI
-from sqlalchemy import select
 from models import NHLTeamStat
 
 from httpx import ASGITransport
