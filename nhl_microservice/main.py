@@ -1,4 +1,5 @@
 from typing import List, Optional
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Query, BackgroundTasks
 from sqlalchemy import select
 
@@ -7,17 +8,27 @@ from models import NHLTeamStat
 import schemas
 import scraper
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Handles application startup and shutdown tasks.
+    Replaces the deprecated on_event structure.
+    """
+    print("[*] LifeCycle: Initializing database architecture maps...")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield # The API runs its full server session while paused on this yield statement.
+
+    print("[*] LifeCycle: Cleaning up microservice resources...")
+    # Add any explicit database pool disconnects here if needed in production.
+
 app = FastAPI(
     title="NHL Async Analytics Pipeline",
     description="Decoupled Microservice with Managed Native Background Processing Queues.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
-
-@app.on_event("startup")
-async def on_startup():
-    """Initializes basic database architecture layout patterns on application activation."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
 
 @app.post("/api/v1/scraper/ingest", response_model=schemas.IngestionTriggerResponse, status_code=202)
 async def trigger_ingestion(

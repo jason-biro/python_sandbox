@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class TeamStatResponse(BaseModel):
     """Validates outwards facing payload structure."""
@@ -9,8 +9,7 @@ class TeamStatResponse(BaseModel):
     losses: int
     win_percentage: float = Field(..., serialization_alias="winPercentage", description="The win percentage of the team")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class IngestionTriggerResponse(BaseModel):
     """Immediate client handshake data schema."""
